@@ -1,6 +1,25 @@
 {
   "name": "buffer-socket",
   "version": "0.0.0",
-  "main": "index.js",
-  "license": "MIT"
+  "author": "<geekberry@qq.com>",
+  "license": "MIT",
+  "repository": "https://github.com/GeekBerry/buffer-socket.git",
+  "keywords": [
+    "buffer",
+    "websocket"
+  ],
+  "main": "src/index.js",
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "ws": "^7.2.3"
+  },
+  "devDependencies": {
+    "jest": "^25.1.0"
+  },
+  "scripts": {
+    "test": "jest",
+    "public": "yarn publish"
+  }
 }
