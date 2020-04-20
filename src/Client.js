@@ -1,4 +1,3 @@
-const assert = require('assert');
 const EventEmitter = require('events');
 const ws = require('ws');
 const Stream = require('./Stream');
@@ -10,8 +9,26 @@ class Client extends ws {
 
     this.events = new EventEmitter();
     this.on('message', (...args) => this.onMessage(...args));
+    this.on('error', (...args) => this.onError(...args));
+    this.on('close', (...args) => this.onClose(...args));
   }
 
+  onMessage(buffer) {
+    // console.log('CLIENT<-', buffer);
+    const stream = new Stream(buffer);
+    const requestId = stream.readInt();
+    this.events.emit(requestId, stream);
+  }
+
+  onError(error) {
+    throw error;
+  }
+
+  onClose(code, data) {
+    // console.log('CLIENT.close', { code, data });
+  }
+
+  // --------------------------------------------------------------------------
   // TODO ping
   // TODO pong
   // TODO terminate
@@ -49,21 +66,14 @@ class Client extends ws {
     return undefined;
   }
 
-  onMessage(buffer) {
-    // console.log('->', buffer);
-    const stream = new Stream(buffer);
-    const requestId = stream.readInt();
-    this.events.emit(requestId, stream);
-  }
-
   async send(buffer) {
     await this.opened();
-    // console.log('<-', buffer);
+    // console.log('CLIENT->', buffer);
     return new Promise(resolve => super.send(buffer, resolve));
   }
 
-  async request(buffer) {
-    assert(Buffer.isBuffer(buffer), `param must be Buffer, got "${buffer}"`);
+  async request(input) {
+    const buffer = input instanceof Stream ? input.toBuffer() : input;
 
     const requestId = randomInt32();
     const promise = new Promise((resolve, reject) => {

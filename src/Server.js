@@ -24,32 +24,30 @@ class Server extends ws.Server {
 
     this.on('connection', (...args) => this.onConnection(...args));
     this.on('error', (...args) => this.onError(...args));
+    this.on('close', (...args) => this.onClose(...args));
+
     this.middleware = middleware;
   }
 
   onConnection(webSocket) {
-    // webSocket.on('ping', () => {
-    //   TODO
-    // });
-    //
-    // webSocket.on('pong', () => {
-    //   TODO
-    // });
-    //
-    // webSocket.on('close', () => {
-    //   TODO
-    // });
+    // webSocket.on('ping', () => {}); // TODO
+    // webSocket.on('pong', () => {}); // TODO
+    // webSocket.on('close', () => {}); // TODO
 
     webSocket.on('message', async (input) => {
-      // console.log('->', input);
+      // console.log('SERVER<-', input);
       const output = await this.onSocketMessage(input);
-      // console.log('<-', output);
+      // console.log('SERVER->', output);
       await webSocket.send(output);
     });
   }
 
   onError(error) {
     throw error;
+  }
+
+  onClose(...args) {
+    // console.log('SERVER.close', args);
   }
 
   async onSocketMessage(buffer) {

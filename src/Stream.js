@@ -18,7 +18,7 @@ class Stream {
   // ----------------------------------
   /**
    * @param buffer {Buffer}
-   * @return {BufferStream}
+   * @return {Stream}
    */
   write(buffer) {
     assert(Buffer.isBuffer(buffer), `value must be Buffer, got "${buffer}"`);
