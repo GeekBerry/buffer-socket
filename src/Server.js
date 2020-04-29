@@ -19,20 +19,46 @@ error:
  */
 
 class Server extends ws.Server {
-  constructor(options, middleware) {
+  /**
+   * @param options {object}
+   * @param [options.checkAliveInterval] {number} - Check alive interval in ms
+   * @param callback {function}
+   */
+  constructor(options, callback) {
     super(options);
+    this.callback = callback;
 
-    this.on('connection', (...args) => this.onConnection(...args));
-    this.on('error', (...args) => this.onError(...args));
-    this.on('close', (...args) => this.onClose(...args));
+    this.on('connection', this.onConnection.bind(this));
+    this.on('error', this.onError.bind(this));
+    this.on('close', this.onClose.bind(this));
 
-    this.middleware = middleware;
+    if (options.checkAliveInterval) {
+      this.checkAliveHandle = setInterval(this.checkAlive.bind(this), options.checkAliveInterval);
+    }
   }
 
-  onConnection(webSocket) {
-    // webSocket.on('ping', () => {}); // TODO
-    // webSocket.on('pong', () => {}); // TODO
-    // webSocket.on('close', () => {}); // TODO
+  checkAlive() {
+    for (const client of this.clients) {
+      if (!client.isAlive) {
+        client.terminate();
+      } else {
+        client.isAlive = false;
+        client.ping();
+      }
+    }
+  }
+
+  async onConnection(webSocket) {
+    webSocket.isAlive = true;
+
+    // webSocket.on('error', (e) => console.error('SERVER.onError', e)); // TODO
+    // webSocket.on('close', () => console.log('SERVER.onClose')); // TODO
+    // webSocket.on('ping', () => console.log('SERVER.onPing')); // TODO
+
+    webSocket.on('pong', () => {
+      // console.log('SERVER.onPong');
+      webSocket.isAlive = true;
+    });
 
     webSocket.on('message', async (input) => {
       // console.log('SERVER<-', input);
@@ -43,11 +69,16 @@ class Server extends ws.Server {
   }
 
   onError(error) {
+    // console.log('SERVER.onError', error);
     throw error;
   }
 
-  onClose(...args) {
-    // console.log('SERVER.close', args);
+  onClose() {
+    // console.log('SERVER.onClose');
+
+    if (this.checkAliveHandle) {
+      clearInterval(this.checkAliveHandle);
+    }
   }
 
   async onSocketMessage(buffer) {
@@ -63,7 +94,7 @@ class Server extends ws.Server {
     errorStream.writeInt(CODE.ERROR);
 
     try {
-      await this.middleware(inputStream, outputStream);
+      await this.callback(inputStream, outputStream);
       return outputStream.toBuffer();
     } catch (e) {
       errorStream.write(Buffer.from(e.message));

@@ -4,28 +4,31 @@ const Stream = require('./Stream');
 const { CODE, randomInt32 } = require('./util');
 
 class Client extends ws {
-  constructor({ host, port } = {}) {
-    super(`ws://${host}:${port}`);
+  constructor({ host, port, ...options } = {}) {
+    super(`ws://${host}:${port}`, options);
 
-    this.events = new EventEmitter();
-    this.on('message', (...args) => this.onMessage(...args));
-    this.on('error', (...args) => this.onError(...args));
-    this.on('close', (...args) => this.onClose(...args));
+    this.messageEvent = new EventEmitter();
+    this.on('message', this.onMessage.bind(this));
+    this.on('error', this.onError.bind(this));
+    this.on('close', this.onClose.bind(this));
+    // this.on('ping', this.onPing.bind(this)); // TODO
+    // this.on('pong', this.onPong.bind(this)); // TODO
   }
 
   onMessage(buffer) {
     // console.log('CLIENT<-', buffer);
     const stream = new Stream(buffer);
     const requestId = stream.readInt();
-    this.events.emit(requestId, stream);
+    this.messageEvent.emit(requestId, stream);
   }
 
   onError(error) {
+    // console.log('CLIENT.onError', error);
     throw error;
   }
 
   onClose(code, data) {
-    // console.log('CLIENT.close', { code, data });
+    // console.log('CLIENT.onClose', { code, data });
   }
 
   // --------------------------------------------------------------------------
@@ -77,7 +80,7 @@ class Client extends ws {
 
     const requestId = randomInt32();
     const promise = new Promise((resolve, reject) => {
-      this.events.once(requestId, (input) => {
+      this.messageEvent.once(requestId, (input) => {
         const code = input.readInt();
         if (code === CODE.SUCCESS) {
           resolve(input);

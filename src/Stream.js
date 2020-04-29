@@ -1,4 +1,5 @@
 const assert = require('assert');
+const { intToBuffer, numberToBuffer } = require('./util');
 
 class Stream {
   constructor(buffer) {
@@ -31,17 +32,13 @@ class Stream {
   writeInt(value) {
     assert(Number.isInteger(value), `value must be integer got "${value}"`);
 
-    const buffer = Buffer.alloc(4);
-    buffer.writeInt32LE(value, 0);
-    return this.write(buffer);
+    return this.write(intToBuffer(value));
   }
 
   writeNumber(value) {
     assert(Number.isFinite(value), `value must be finite got "${value}"`);
 
-    const buffer = Buffer.alloc(8);
-    buffer.writeDoubleLE(value, 0);
-    return this.write(buffer);
+    return this.write(numberToBuffer(value));
   }
 
   writeBuffer(buffer) {
