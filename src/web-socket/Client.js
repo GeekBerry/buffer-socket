@@ -26,8 +26,9 @@ class Client {
     this.eventEmitter = new EventEmitter();
     this.closed = false;
     this.webSocket = null;
-    this._retryCount = null;
     this._reconnectHandle = null;
+    this._retryCount = this.reconnectCount;
+    this._lastError = null;
     this._connect();
   }
 
@@ -39,9 +40,12 @@ class Client {
     const webSocket = new ws(`${protocol}://${host}:${port}`, protocols, options);
     webSocket.send = promisify(webSocket.send);
     webSocket.on('message', this.onMessage.bind(this));
-    webSocket.once('error', () => undefined);
+    webSocket.on('error', (e) => {
+      this._lastError = e;
+    });
     webSocket.once('open', () => {
       this._retryCount = this.reconnectCount;
+      this._lastError = null;
       this.eventEmitter.emit('open');
     });
     webSocket.once('close', () => {
@@ -50,7 +54,7 @@ class Client {
       }
 
       if (!this._retryCount) {
-        throw new Error(`${this.constructor.name} connect failed after retry ${this.reconnectCount} times`);
+        throw new Error(`connect failed after retry ${this.reconnectCount} times with error "${this._lastError.message}"`);
       }
 
       this._reconnectHandle = setTimeout(this._connect.bind(this), this.reconnectInterval);
