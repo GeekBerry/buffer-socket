@@ -5,6 +5,8 @@ const util = require('./util');
 class Server {
   /**
    * @param options {object}
+   * @param options.host {string}
+   * @param options.port {number}
    * @param [options.checkAliveInterval] {number} - Check alive interval in ms
    * @param middleware {function}
    */

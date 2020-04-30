@@ -3,6 +3,15 @@ const EventEmitter = require('events');
 const ws = require('ws');
 
 class Client {
+  /**
+   * @param options {object}
+   * @param [options.protocol='ws'] {string}
+   * @param options.host {string}
+   * @param options.port {number}
+   * @param [options.reconnectCount=Infinity] - Reconnect times
+   * @param [options.reconnectInterval=5000] - Reconnect interval in ms
+   * @param callback
+   */
   constructor({
     reconnectCount = Infinity,
     reconnectInterval = 5 * 1000,
@@ -15,16 +24,14 @@ class Client {
     this.callback = callback;
 
     this.eventEmitter = new EventEmitter();
-
     this.closed = false;
     this.webSocket = null;
+    this._retryCount = null;
+    this._reconnectHandle = null;
     this._connect();
   }
 
   _connect() {
-    if (this.closed) {
-      return;
-    }
     // console.log('CLIENT.connect', this._retryCount);
 
     const { protocol = 'ws', host, port, protocols, ...options } = this.options;
@@ -38,11 +45,15 @@ class Client {
       this.eventEmitter.emit('open');
     });
     webSocket.once('close', () => {
+      if (this.closed) {
+        return;
+      }
+
       if (!this._retryCount) {
         throw new Error(`${this.constructor.name} connect failed after retry ${this.reconnectCount} times`);
       }
 
-      setTimeout(this._connect.bind(this), this.reconnectInterval);
+      this._reconnectHandle = setTimeout(this._connect.bind(this), this.reconnectInterval);
       this._retryCount -= 1;
     });
 
@@ -73,6 +84,7 @@ class Client {
     }
 
     this.closed = true;
+    clearTimeout(this._reconnectHandle);
     switch (this.webSocket.readyState) {
       case ws.CONNECTING:
         await this.opened();

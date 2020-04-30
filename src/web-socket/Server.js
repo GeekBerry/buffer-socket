@@ -4,14 +4,16 @@ const ws = require('ws');
 class Server extends ws.Server {
   /**
    * @param options {object}
+   * @param options.host {string}
+   * @param options.port {number}
    * @param [options.checkAliveInterval=30*1000] {number} - Check alive interval in ms
    * @param callback {function}
    */
   constructor({
     checkAliveInterval = 30 * 1000,
-    ...rest
+    ...options
   }, callback) {
-    super(rest);
+    super(options);
     this.callback = callback;
 
     this.close = promisify(this.close);

@@ -4,6 +4,15 @@ const Stream = require('./Stream');
 const util = require('./util');
 
 class Client {
+  /*
+   * @param options {object}
+   * @param [options.protocol='ws'] {string}
+   * @param options.host {string}
+   * @param options.port {number}
+   * @param [options.reconnectCount=12] - Reconnect times
+   * @param [options.reconnectInterval=5000] - Reconnect interval in ms
+   * @param [options.responseTimeout=5*6000] - wait response timeout in ms
+   */
   constructor({
     responseTimeout = 5 * 60 * 1000,
     ...options
