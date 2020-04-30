@@ -8,7 +8,7 @@
     "buffer",
     "websocket"
   ],
-  "main": "src/index.js",
+  "main": "index.js",
   "files": [
     "src"
   ],

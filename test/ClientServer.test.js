@@ -1,4 +1,4 @@
-const { Server, Client } = require('../');
+const { Server, Client } = require('../index');
 
 let server;
 
@@ -7,7 +7,7 @@ beforeAll(() => {
     if (input.length) {
       output.write(input.toBuffer().reverse());
     } else {
-      throw new Error('input is empty');
+      throw new Error('reverseBuffer not accept empty buffer');
     }
   }
 
@@ -20,7 +20,7 @@ test('request', async () => {
   const stream = await client.request(Buffer.from('1234'));
   expect(stream.toBuffer().toString()).toEqual('4321');
 
-  await expect(client.request(Buffer.from(''))).rejects.toThrow('input is empty');
+  await expect(client.request(Buffer.from(''))).rejects.toThrow('reverseBuffer not accept empty buffer');
 
   await client.close();
 });

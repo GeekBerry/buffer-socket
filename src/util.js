@@ -4,6 +4,11 @@ function randomInt32() {
   return crypto.randomBytes(4).readInt32LE();
 }
 
+// ----------------------------------------------------------------------------
+function boolToBuffer(value) {
+  return value ? Buffer.from([1]) : Buffer.from([0]);
+}
+
 function intToBuffer(value) {
   const buffer = Buffer.alloc(4);
   buffer.writeInt32LE(value, 0);
@@ -16,13 +21,30 @@ function numberToBuffer(value) {
   return buffer;
 }
 
+// ----------------------------------------------------------------------------
+function bufferToBool(buffer) {
+  return Boolean(buffer[0]);
+}
+
+function bufferToInt(buffer) {
+  return buffer.readInt32LE(0);
+}
+
+function bufferToNumber(buffer) {
+  return buffer.readDoubleLE(0);
+}
+
 module.exports = {
-  CODE: {
-    SUCCESS: 0,
-    ERROR: 1,
-  },
+  SUCCESS: 0,
+  ERROR: 1,
 
   randomInt32,
+
+  boolToBuffer,
   intToBuffer,
   numberToBuffer,
+
+  bufferToBool,
+  bufferToInt,
+  bufferToNumber,
 };

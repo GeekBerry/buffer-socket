@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { intToBuffer, numberToBuffer } = require('./util');
+const util = require('./util');
 
 class Stream {
   constructor(buffer) {
@@ -18,10 +18,12 @@ class Stream {
 
   // ----------------------------------
   /**
-   * @param buffer {Buffer}
+   * @param buffer {Stream|Buffer}
    * @return {Stream}
    */
   write(buffer) {
+    buffer = buffer instanceof Stream ? buffer.toBuffer() : buffer;
+
     assert(Buffer.isBuffer(buffer), `value must be Buffer, got "${buffer}"`);
 
     this._array.push(buffer);
@@ -29,16 +31,20 @@ class Stream {
     return this;
   }
 
+  writeBool(value) {
+    return this.write(util.boolToBuffer(value));
+  }
+
   writeInt(value) {
     assert(Number.isInteger(value), `value must be integer got "${value}"`);
 
-    return this.write(intToBuffer(value));
+    return this.write(util.intToBuffer(value));
   }
 
   writeNumber(value) {
     assert(Number.isFinite(value), `value must be finite got "${value}"`);
 
-    return this.write(numberToBuffer(value));
+    return this.write(util.numberToBuffer(value));
   }
 
   writeBuffer(buffer) {
@@ -100,14 +106,16 @@ class Stream {
     return buffer;
   }
 
+  readBool() {
+    return util.bufferToBool(this.read(1));
+  }
+
   readInt() {
-    const buffer = this.read(4);
-    return buffer.readInt32LE(0);
+    return util.bufferToInt(this.read(4));
   }
 
   readNumber() {
-    const buffer = this.read(8);
-    return buffer.readDoubleLE(0);
+    return util.bufferToNumber(this.read(8));
   }
 
   readBuffer() {

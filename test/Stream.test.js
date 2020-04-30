@@ -1,4 +1,4 @@
-const { Stream } = require('../');
+const { Stream } = require('../index');
 
 test('write pick read', () => {
   const stream = new Stream();
@@ -37,6 +37,22 @@ test('write pick read', () => {
   expect(stream.toBuffer()).toEqual(Buffer.from('ghijk'));
 });
 
+test('Bool', () => {
+  const stream = new Stream();
+
+  stream.writeBool(false);
+  expect(stream.length).toEqual(1);
+  expect(stream.toBuffer()).toEqual(Buffer.from([0x00]));
+  expect(stream.readBool()).toEqual(false);
+  expect(stream.length).toEqual(0);
+
+  stream.writeBool(true);
+  expect(stream.length).toEqual(1);
+  expect(stream.toBuffer()).toEqual(Buffer.from([0x01]));
+  expect(stream.readBool()).toEqual(true);
+  expect(stream.length).toEqual(0);
+});
+
 test('Int', () => {
   const stream = new Stream();
 
@@ -68,4 +84,17 @@ test('Number', () => {
   expect(stream.length).toEqual(0);
 
   expect(() => stream.writeNumber(Infinity)).toThrow('value must be finite');
+});
+
+test('Buffer', () => {
+  const stream = new Stream();
+
+  stream.writeBuffer(Buffer.from('abc'));
+  expect(stream.length).toEqual(7);
+
+  stream.writeBuffer(Buffer.from('xyz'));
+  expect(stream.length).toEqual(14);
+
+  expect(stream.readBuffer()).toEqual(Buffer.from('abc'));
+  expect(stream.readBuffer()).toEqual(Buffer.from('xyz'));
 });
